@@ -2,6 +2,7 @@ from position import Position
 import math
 import pygame
 
+
 class Graphic:
     def __init__(self,
                  image: str,
@@ -52,6 +53,18 @@ class VectoredGraphic(Graphic):
     def draw(self, screen, offset=(0, 0)):
         self._face_direction(self.face)
         super()._draw(position=self.posistion, screen=screen, offset=offset)
+
+    def draw_hitbox(self, screen, offset=(0, 0), x=0, y=0, width: int = 0, height: int = 0):
+        nx, ny = x - (width // 2) - offset[0], y - (height // 2) - offset[1]
+        pygame.draw.rect(
+            screen,
+            (255, 0, 0),
+            (
+                nx, ny,
+                width, height
+            ),
+            1
+        )
 
     def _face_direction(self, posistion: Position):
         angle = math.atan2(posistion.y - self.posistion.y,

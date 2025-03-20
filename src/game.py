@@ -6,7 +6,7 @@ from enum import Enum
 from typing import Tuple, List
 
 from graphics import VectoredGraphic
-from actor import Boundry, Position, ActorsActions, PlayerActor, Actor, NPCActor
+from actor import Boundry, Position, ActorsActions, PlayerActor, Actor, NPCActor, Hitbox
 
 
 wall_path = "wall1"
@@ -61,7 +61,7 @@ class Map:
     
     def _is_xy_boundry(self, x, y):
         for boundry in self.boundries:
-            if boundry.is_hitbox_coliding(Actor(x, y)):
+            if boundry.is_colliding(Actor(x, y)):
                 return True
         return False
 
@@ -108,21 +108,25 @@ class Map:
             self._check_objects_in_fov(
                 player, offset=camera_offset, screen_dimensions=screen_dimensions)
 
-    def fov(self, player, offset=(0, 0), screen_dimensions=(800, 400)):
-        fov_actor = Actor(
-            x=offset[0] + screen_dimensions[0]//2, y=offset[1] + screen_dimensions[1]//2, width=screen_dimensions[0], height=screen_dimensions[1])
+    def fov(self, player, offset=(0, 0), screen_dimensions=(800, 400), excess=0.5):
+        # screen_dimensions = (screen_dimensions[0] * (1 + excess) // 2, screen_dimensions[1] *(1 + excess))
+        fov_actor = Hitbox(
+            x=offset[0],  # + screen_dimensions[0]//2,
+            y=offset[1],  # + screen_dimensions[1]//2,
+            width=screen_dimensions[0],
+            height=screen_dimensions[1])
         return fov_actor
 
     def _check_objects_in_fov(self, player, offset=(0, 0), screen_dimensions=(800, 400)):
         self.fov_boundries.clear()
         for actor in self.boundries:
-            if actor.is_hitbox_coliding(self.fov(player, offset, screen_dimensions)):
+            if actor.is_colliding(self.fov(player, offset, screen_dimensions)):
                 self.fov_boundries.append(actor)
     
     def _check_enemies_in_fov(self, player, offset=(0, 0), screen_dimensions=(800, 400)):
         self.fov_enemies.clear()
         for actor in self.get_enemies():
-            if actor.is_hitbox_coliding(self.fov(player, offset, screen_dimensions)):
+            if actor.is_colliding(self.fov(player, offset, screen_dimensions)):
                 self.fov_enemies.append(actor)
 
     def _check_enemies(self, player, offset=(0, 0)):
@@ -136,13 +140,13 @@ class Map:
 
     def _check_boundry_collisions(self, actor):
         for bound in self.fov_boundries:
-            if bound.is_hitbox_coliding(actor):
+            if bound.is_colliding(actor):
                 bound.knock_back(actor)
 
     def draw(self, screen, camera_offset=(0, 0)):
-        self.fov_boundries.draw(screen, offset=camera_offset)
         self.players.draw(screen, offset=camera_offset)
         self.fov_enemies.draw(screen, offset=camera_offset)
+        self.fov_boundries.draw(screen, offset=camera_offset)
 
 # Combat function
 

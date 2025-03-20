@@ -7,10 +7,44 @@ from position import Position
 from graphics import VectoredGraphic
 
 
-class Actor(Position):
-    _width = 32
-    _height = 32
+class Hitbox(Position):
+    _width = 0
+    _height = 0
 
+    def __init__(self, x, y, width=0, height=0, id="Hitbox"):
+        super().__init__(x, y, id=id)
+        self._width = width
+        self._height = height
+
+    def is_colliding(self, other):
+        return (
+            self.x < other.x + other.width() and
+            self.x + self.width() > other.x and
+            self.y < other.y + other.height() and
+            self.y + self.height() > other.y
+        )
+
+    def width(self):
+        return self._width
+
+    def height(self):
+        return self._height
+
+    def draw(self, screen, offset=(0, 0), hitboxes=True):
+        vect_graphic = self.rendered_graphic()
+        self._width = vect_graphic.width()
+        self._height = vect_graphic.height()
+        vect_graphic.draw(screen, offset=offset)
+        if hitboxes:
+            # pygame.draw.rect(screen, (255, 0, 0), (self.x, self.y, self.width(), self.height()), 1)
+            vect_graphic.draw_hitbox(
+                screen=screen,
+                offset=offset,
+                x=self.x , y=self.y,
+                width=self.width(), height=self.height())
+
+
+class Actor(Hitbox):
     def __init__(self,
                  x, y,
                  facing: Position = Position(0, 0),
@@ -24,7 +58,7 @@ class Actor(Position):
                  width=32,
                  height=32,
                  ):
-        super().__init__(x, y, id)
+        Hitbox.__init__(self, x, y, width, height, id)
         self.health = health
         self.speed = speed
         self.attack = attack
@@ -33,15 +67,12 @@ class Actor(Position):
         self.agro = agro
 
         self.moving = False
-        self._width = width
-        self._height = height
+        # innit hitbox
         self._facing = facing
-        self._calc_hitbox()
         self._command: Position = Position(0, 0)
 
-    def draw(self, screen, offset=(0, 0)):
-        vect_graphic = VectoredGraphic(self, facing=self._facing)
-        vect_graphic.draw(screen, offset=offset)
+    def rendered_graphic(self):
+        return VectoredGraphic(self, facing=self._facing)
 
     def width(self):
         return self._width
@@ -60,26 +91,16 @@ class Actor(Position):
     def look_at(self, position: Position):
         self._facing = position
 
-    def colliding(self, other, offset=0):
-        distance = math.sqrt((self.x - other.x + offset) **
-                             2 + (self.y - other.y + offset)**2)
-        return distance < self.radius()  # + other.radius()
+    # def colliding(self, other, offset=0):
+    #     distance = math.sqrt((self.x - other.x + offset) **
+    #                          2 + (self.y - other.y + offset)**2)
+    #     return distance < self.radius()  # + other.radius()
 
-    def is_hitbox_coliding(self, other, offset=0):
-        return (
-            self.hitbox[0] < other.hitbox[2] + offset and
-            self.hitbox[2] > other.hitbox[0] - offset and
-            self.hitbox[1] < other.hitbox[3] + offset and
-            self.hitbox[3] > other.hitbox[1] - offset
-        )
+    # def is_hitbox_colliding(self, other):
+    #     return self.hitbox.is_colliding(other)
 
-    def _calc_hitbox(self, offset=0):
-        self.hitbox = (
-            self.x - self.radius() + offset,
-            self.y - self.radius() + offset,
-            self.x + self.radius() + offset,
-            self.y + self.radius() + offset
-        )
+    # def _calc_hitbox(self):
+    #    self.hitbox = Hitbox(self.x - 100, self.y, self.width(), self.height())
 
     def get_angle_on(self, other):
         angle = math.atan2(other.y - self.y, other.x - self.x)
@@ -102,7 +123,7 @@ class Actor(Position):
             self.y += dy * self.speed
 
     def step_away_from(self, other):
-        other = self._facing
+        # other = self._facing
         if other is None and self.moving is False:
             return
         dx = other.x - self.x
@@ -123,7 +144,7 @@ class Actor(Position):
 
     def move(self, offset=(0, 0)):
         if self.moving is True:
-            self._calc_hitbox()
+            # self._calc_hitbox()  # offset=(0, self.width() // -2))
 
             if (
                     self.x <= self._command.x + self.radius()
@@ -144,8 +165,15 @@ class Actor(Position):
 
 
 class Boundry(Actor):
-    def __init__(self, x, y, facing: Position = Position(0, 0), id="Boundry"):
-        super().__init__(x, y, facing=facing, id=id)
+    def __init__(self,
+                 x,
+                 y,
+                 facing: Position = Position(0, 0),
+                 id="Boundry",
+                 width=32,
+                 height=32
+                 ):
+        super().__init__(x, y, facing=facing, id=id, width=width, height=height)
 
 
 class MobileActor(Actor):
@@ -159,16 +187,26 @@ class MobileActor(Actor):
                  speed=1,
                  vision=100,
                  hostile=False,
-                 agro=False
+                 agro=False,
+
+                 width=32,
+                 height=32
                  ):
         super().__init__(x, y, facing=facing, id=id, health=health,
-                         attack=attack, speed=speed, vision=vision, hostile=hostile, agro=agro)
+                         attack=attack, speed=speed, vision=vision, hostile=hostile, agro=agro,
+                         width=width, height=height)
 # Player class
 
 
 class PlayerActor(Actor):
-    def __init__(self, x, y, id="Player"):
-        super().__init__(x, y, facing=Position(0, 0), id=id, health=100, speed=2)
+    def __init__(self,
+                 x, y,
+                 id="Player",
+                 width=32,
+                 height=32
+                 ):
+        super().__init__(x, y, facing=Position(0, 0), id=id,
+                         health=100, speed=2, width=width, height=height)
 
     def check_move(self, camera_offset=(0, 0)):
         # if mouse left click
@@ -192,10 +230,13 @@ class NPCActor(Actor):
                  speed=1,
                  vision=100,
                  hostile=False,
-                 agro=False
+                 agro=False,
+
+                 width=32,
+                 height=32
                  ):
         super().__init__(x, y, id=id, health=health, speed=speed,
-                         vision=vision, hostile=hostile, agro=agro)
+                         vision=vision, hostile=hostile, agro=agro, width=width, height=height)
 
     def check_move(self):
         if self.agro:
