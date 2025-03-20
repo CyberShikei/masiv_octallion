@@ -109,12 +109,13 @@ class Map:
                 player, offset=camera_offset, screen_dimensions=screen_dimensions)
 
     def fov(self, player, offset=(0, 0), screen_dimensions=(800, 400), excess=0.5):
-        # screen_dimensions = (screen_dimensions[0] * (1 + excess) // 2, screen_dimensions[1] *(1 + excess))
         fov_actor = Hitbox(
-            x=offset[0],  # + screen_dimensions[0]//2,
-            y=offset[1],  # + screen_dimensions[1]//2,
-            width=screen_dimensions[0],
-            height=screen_dimensions[1])
+            x=offset[0] - screen_dimensions[0] * (excess/2),
+            y=offset[1] - screen_dimensions[1] * (excess),
+            width=screen_dimensions[0] * (1 + excess), 
+            height=screen_dimensions[1] * (1 + excess),  
+            id="none",
+            vissable=False)
         return fov_actor
 
     def _check_objects_in_fov(self, player, offset=(0, 0), screen_dimensions=(800, 400)):

@@ -10,19 +10,36 @@ from graphics import VectoredGraphic
 class Hitbox(Position):
     _width = 0
     _height = 0
+    _vissable = True
 
-    def __init__(self, x, y, width=0, height=0, id="Hitbox"):
+    def __init__(self, x, y, width=0, height=0, id="Hitbox", vissable=True):
         super().__init__(x, y, id=id)
         self._width = width
         self._height = height
+        self._vissable = vissable
+        self._adjustment = (0, self.height()//2 - self.height()//4)
+
+    def _adjusted_x(self):
+        return self.x + self._adjustment[0]
+
+    def _adjusted_y(self):
+        return self.y + self._adjustment[1]
 
     def is_colliding(self, other):
-        return (
-            self.x < other.x + other.width() and
-            self.x + self.width() > other.x and
-            self.y < other.y + other.height() and
-            self.y + self.height() > other.y
-        )
+        if self._vissable:
+            return (
+                self._adjusted_x() < other._adjusted_x() + other.width() and
+                self._adjusted_x() + self.width() > other._adjusted_x() and
+                self._adjusted_y() < other._adjusted_y() + other.height() and
+                self._adjusted_y() + self.height() > other._adjusted_y()
+            )
+        else:
+            return (
+                self.x < other.x + other.width() and
+                self.x + self.width() > other.x and
+                self.y < other.y + other.height() and
+                self.y + self.height() > other.y
+            )
 
     def width(self):
         return self._width
@@ -30,17 +47,17 @@ class Hitbox(Position):
     def height(self):
         return self._height
 
-    def draw(self, screen, offset=(0, 0), hitboxes=True):
+    def draw(self, screen, offset=(0, 0), hitboxes=False):
         vect_graphic = self.rendered_graphic()
         self._width = vect_graphic.width()
-        self._height = vect_graphic.height()
+        self._height = vect_graphic.width()//2
         vect_graphic.draw(screen, offset=offset)
         if hitboxes:
             # pygame.draw.rect(screen, (255, 0, 0), (self.x, self.y, self.width(), self.height()), 1)
             vect_graphic.draw_hitbox(
                 screen=screen,
                 offset=offset,
-                x=self.x , y=self.y,
+                x=self._adjusted_x(), y=self._adjusted_y(),
                 width=self.width(), height=self.height())
 
 
