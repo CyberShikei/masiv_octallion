@@ -12,9 +12,9 @@ class Graphic:
         self.id = id
         self.set_image(image, scale)
 
-    def _draw(self, screen, position: Position, offset=(0, 0)):
+    def _draw(self, screen, position: Position, offset:Position=Position(0, 0)):
         screen.blit(self.image, (position.x - self.image.get_width() //
-                    2 - offset[0], position.y - self.image.get_height() // 2 - offset[1]))
+                    2 - offset.x, position.y - self.image.get_height() // 2 - offset.y))
 # Actor class
 
     def scale_image(self, scale):
@@ -50,12 +50,12 @@ class VectoredGraphic(Graphic):
         super().__init__(
             image=f"public/sprites/{self.id}.png", scale=scale, id=self.id)
 
-    def draw(self, screen, offset=(0, 0)):
+    def draw(self, screen, offset: Position = Position(0, 0)):
         self._face_direction(self.face)
         super()._draw(position=self.posistion, screen=screen, offset=offset)
 
-    def draw_hitbox(self, screen, offset=(0, 0), x=0, y=0, width: int = 0, height: int = 0):
-        nx, ny = x - (width // 2) - offset[0], y - (height // 2) - offset[1]
+    def draw_hitbox(self, screen, offset:Position, x=0, y=0, width: int = 0, height: int = 0):
+        nx, ny = x - (width // 2) - offset.x, y - (height // 2) - offset.y
         pygame.draw.rect(
             screen,
             (255, 0, 0),

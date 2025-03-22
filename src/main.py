@@ -25,32 +25,10 @@ WHITE = (255, 255, 255)
 # Camera function
 
 
-def get_camera_offset(player):
-    # Center the player on the screen
-    offset_x = player.center().x - SCREEN_WIDTH // 2
-    offset_y = player.center().y - SCREEN_HEIGHT // 2
-
-    # Clamp the offset so the camera doesn't show outside the world
-    offset_x = max(0, min(offset_x, WORLD_WIDTH - SCREEN_WIDTH))
-    offset_y = max(0, min(offset_y, WORLD_HEIGHT - SCREEN_HEIGHT))
-
-    return (offset_x, offset_y)
-
-
 def main():
-    spider_path = "spider"
-    tree_path = "tree"
     clock = pygame.time.Clock()
 
-    # spawn trees
-    trees = []
-    num_trees = 100
-    for _ in range(num_trees):
-        x = random.randint(0, WORLD_WIDTH)
-        y = random.randint(0, WORLD_HEIGHT)
-        trees.append(Boundry(x, y, id=tree_path))
-
-    game = Map(WORLD_WIDTH, WORLD_HEIGHT, boundries=trees)
+    game = Map(WORLD_WIDTH, WORLD_HEIGHT)
 
     running = True
     ticker = 1
@@ -60,13 +38,12 @@ def main():
                 running = False
 
         # Updating
-        camera_offset = get_camera_offset(game.get_player())
-        game.take_move(tick=ticker, camera_offset=camera_offset, screen_dimensions=(SCREEN_WIDTH, SCREEN_HEIGHT))
+        game.take_move(tick=ticker, screen_dimensions=(SCREEN_WIDTH, SCREEN_HEIGHT))
 
         # Drawing
         screen.fill(WHITE)
 
-        game.draw(screen, camera_offset)
+        game.draw(screen)
 
         pygame.display.flip()
         #print(ticker)

@@ -1,0 +1,2 @@
+add type strictness to functions
+seperate point calculation based on UI and Game
